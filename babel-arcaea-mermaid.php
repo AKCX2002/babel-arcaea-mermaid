@@ -18,18 +18,30 @@ define('BAM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BAM_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 /**
- * GitHub auto-updater via Plugin Update Checker library.
+ * GitHub auto-updater — loaded on plugins_loaded to avoid PUC namespace
+ * conflicts with WordPress admin_menu hooks.
  */
-require_once BAM_PLUGIN_DIR . 'lib/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5p7\PucFactory;
-
-add_action('init', function () {
-    $updateChecker = PucFactory::buildUpdateChecker(
+add_action('plugins_loaded', function () {
+    $puc_file = BAM_PLUGIN_DIR . 'lib/plugin-update-checker.php';
+    if (!file_exists($puc_file)) {
+        return;
+    }
+    require_once $puc_file;
+    $updateChecker = \YahnisElsts\PluginUpdateChecker\v5p7\PucFactory::buildUpdateChecker(
         'https://github.com/AKCX2002/babel-arcaea-mermaid/',
         __FILE__,
         'babel-arcaea-mermaid'
     );
     $updateChecker->getVcsApi()->enableReleaseAssets();
+});
+
+/**
+ * Add Settings link on Plugins page.
+ */
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), function ($links) {
+    $settings_link = '<a href="' . admin_url('options-general.php?page=babel-arcaea-mermaid') . '">设置</a>';
+    array_unshift($links, $settings_link);
+    return $links;
 });
 
 /**
