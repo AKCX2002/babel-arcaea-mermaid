@@ -38,16 +38,16 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Found version: $VERSION"
 
-      - name: Check if tag exists
+      - name: Check if GitHub release exists
         id: check-tag
         run: |
           VER="${{ steps.get-version.outputs.version }}"
-          if git rev-parse "v$VER" >/dev/null 2>&1; then
+          if gh release view "v$VER" --repo ${{ github.repository }} >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Tag v$VER already exists, skipping release"
+            echo "Release v$VER already exists, skipping"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "Tag v$VER will be created"
+            echo "Release v$VER will be created"
           fi
 
   release:
