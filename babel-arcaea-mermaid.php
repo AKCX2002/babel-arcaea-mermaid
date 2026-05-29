@@ -18,6 +18,21 @@ define('BAM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BAM_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
 /**
+ * GitHub auto-updater via Plugin Update Checker library.
+ */
+require_once BAM_PLUGIN_DIR . 'lib/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5p7\PucFactory;
+
+add_action('init', function () {
+    $updateChecker = PucFactory::buildUpdateChecker(
+        'https://github.com/AKCX2002/babel-arcaea-mermaid/',
+        __FILE__,
+        'babel-arcaea-mermaid'
+    );
+    $updateChecker->getVcsApi()->enableReleaseAssets();
+});
+
+/**
  * Default options.
  */
 function bam_default_options()
