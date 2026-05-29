@@ -112,4 +112,4 @@ jobs:
 
             Review the release notes before merging for any breaking changes.
           branch: chore/mermaid-bump-${{ steps.mermaid-version.outputs.latest }}
-          base: master
+          base: main
