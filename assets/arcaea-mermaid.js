@@ -3,64 +3,16 @@
 
   const LOG = '[Babel Arcaea Mermaid]';
 
-  /* ── Step 1: Mark Mermaid code blocks so Prism ignores them ── */
-  function protectMermaidFromPrism(root) {
-    root.querySelectorAll(
-      'pre > code.language-mermaid, pre > code.lang-mermaid'
-    ).forEach((code) => {
-      const pre = code.closest('pre');
-      if (!pre) return;
-
-      pre.classList.add(
-        'no-toolbar', 'no-highlight', 'notranslate',
-        'arcaea-mermaid-source'
-      );
-      code.classList.add('no-toolbar', 'no-highlight', 'language-none');
-      code.removeAttribute('data-language');
-    });
-  }
-
-  /* ── Step 2: Replace <pre class="arcaea-mermaid-source"> with <div class="mermaid"> ── */
-  function convertMermaidCodeBlocks(root) {
-    root.querySelectorAll('pre.arcaea-mermaid-source').forEach((pre, index) => {
-      if (pre.dataset.arcaeaMermaidConverted === '1') return;
-
-      const code = pre.querySelector('code') || pre;
-      const source = (code.textContent || code.innerText || '').trim();
-      if (!source) return;
-
-      const box = document.createElement('div');
-      box.className = 'arcaea-mermaid-box';
-
-      const diagram = document.createElement('div');
-      diagram.className = 'mermaid arcaea-mermaid-diagram';
-      diagram.dataset.processed = 'false';
-      diagram.dataset.arcaeaMermaidId = String(index + 1);
-      diagram.textContent = source;
-
-      box.appendChild(diagram);
-      pre.dataset.arcaeaMermaidConverted = '1';
-      pre.replaceWith(box);
-    });
-  }
-
-  /* ── Load Mermaid ESM ── */
   async function loadMermaid() {
     if (window.mermaid) return window.mermaid;
-
-    const moduleUrl =
-      'https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs';
-
-    const mod = await import(moduleUrl);
+    const mod = await import(
+      'https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs'
+    );
     window.mermaid = mod.default;
     return window.mermaid;
   }
 
-  /* ── Step 3: Render all .mermaid elements ── */
   async function renderMermaid(root) {
-    protectMermaidFromPrism(root);
-    convertMermaidCodeBlocks(root);
-
     const diagrams = root.querySelectorAll(
       '.mermaid.arcaea-mermaid-diagram:not([data-arcaea-rendered="1"])'
     );
@@ -127,7 +79,6 @@
       suppressErrors: true
     });
 
-    /* Normalize SVGs after render */
     diagrams.forEach((el) => {
       el.dataset.arcaeaRendered = '1';
       const svg = el.querySelector('svg');
