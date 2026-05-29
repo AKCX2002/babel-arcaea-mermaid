@@ -248,10 +248,12 @@ function bam_enqueue_assets()
     // Inject head marker BEFORE Prism autoloader scans
     add_action('wp_head', function () {
         ?><script>
-(function(){document.querySelectorAll('code.language-mermaid,code.lang-mermaid').forEach(function(c){
-var p=c.closest('pre');if(p){p.classList.add('no-toolbar','no-highlight','notranslate','arcaea-mermaid-source');
-c.classList.add('no-toolbar','no-highlight','language-none');c.removeAttribute('data-language');
-p.style.display='none';}})})();
+// MutationObserver: intercept language-mermaid BEFORE Prism sees them
+(function(){function p(){document.querySelectorAll('code.language-mermaid,code.lang-mermaid,pre.mermaid').forEach(function(c){var p=c.closest('pre')||c;if(p&&!p.dataset.bamProtected){p.dataset.bamProtected='1';
+p.classList.add('no-toolbar','no-highlight','notranslate','arcaea-mermaid-source');var cd=p.tagName==='PRE'?p.querySelector('code')||c:c;
+cd.classList.add('no-toolbar','no-highlight','language-none');cd.removeAttribute('data-language');p.style.setProperty('display','none','important');}})}
+p();var o=new MutationObserver(function(m){m.forEach(function(r){r.addedNodes.forEach(function(n){if(n.querySelectorAll){p();}})})});
+o.observe(document.documentElement,{childList:true,subtree:true});})();
 </script><?php
     }, 0);
 

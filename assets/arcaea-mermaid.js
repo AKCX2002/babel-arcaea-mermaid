@@ -12,32 +12,22 @@
       if (!pre) return;
 
       pre.classList.add(
-        'no-toolbar',
-        'no-highlight',
-        'notranslate',
+        'no-toolbar', 'no-highlight', 'notranslate',
         'arcaea-mermaid-source'
       );
-
-      code.classList.add(
-        'no-toolbar',
-        'no-highlight',
-        'language-none'
-      );
-
+      code.classList.add('no-toolbar', 'no-highlight', 'language-none');
       code.removeAttribute('data-language');
     });
   }
 
-  /* ── Step 2: Replace <pre><code> with <div class="mermaid"> ── */
+  /* ── Step 2: Replace <pre class="arcaea-mermaid-source"> with <div class="mermaid"> ── */
   function convertMermaidCodeBlocks(root) {
-    root.querySelectorAll(
-      'pre > code.language-mermaid, pre > code.lang-mermaid'
-    ).forEach((code, index) => {
-      const pre = code.closest('pre');
-      if (!pre || pre.dataset.arcaeaMermaidConverted === '1') return;
+    root.querySelectorAll('pre.arcaea-mermaid-source').forEach((pre, index) => {
+      if (pre.dataset.arcaeaMermaidConverted === '1') return;
 
-      const source = code.textContent || '';
-      if (!source.trim()) return;
+      const code = pre.querySelector('code') || pre;
+      const source = (code.textContent || code.innerText || '').trim();
+      if (!source) return;
 
       const box = document.createElement('div');
       box.className = 'arcaea-mermaid-box';
