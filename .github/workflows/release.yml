@@ -77,6 +77,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.check-version.outputs.version }}
         run: |
+          # Delete existing release/tag if any (stale from partial runs)
+          gh release delete "v$VERSION" --repo ${{ github.repository }} --yes 2>/dev/null || true
           gh release create "v$VERSION" \
             --title "v$VERSION" \
             --notes "See [CHANGELOG](https://github.com/${{ github.repository }}/commits/v$VERSION)" \
