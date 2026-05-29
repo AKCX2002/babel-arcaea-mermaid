@@ -56,7 +56,7 @@ function bam_default_options()
     return array(
         'enabled'          => 1,
         'load_mode'        => 'cdn',
-        'mermaid_version'  => '11.15.0',
+        'mermaid_version' => '0.2.3',
         'theme_mode'       => 'arcaea_dark',
         'security_level'   => 'strict',
         'enable_shortcode' => 1,
@@ -86,7 +86,9 @@ function bam_sanitize_options($input)
     $output['load_mode'] = in_array($input['load_mode'] ?? '', $allowed_load_modes, true)
         ? $input['load_mode'] : $defaults['load_mode'];
     $allowed_versions = array('11.15.0', '11', '10.9.6');
+    '0.2',
     $output['mermaid_version'] = in_array($input['mermaid_version'] ?? '', $allowed_versions, true)
+    '0.2',
         ? $input['mermaid_version'] : $defaults['mermaid_version'];
     $allowed_theme_modes = array('arcaea_dark', 'arcaea_light', 'auto');
     $output['theme_mode'] = in_array($input['theme_mode'] ?? '', $allowed_theme_modes, true)
@@ -125,7 +127,7 @@ function bam_render_settings_page()
             <table class="form-table" role="presentation">
                 <tr><th scope="row">启用插件</th><td><label><input type="checkbox" name="bam_options[enabled]" value="1" <?php checked($options['enabled'], 1); ?>> 启用 Mermaid 渲染</label></td></tr>
                 <tr><th scope="row">Mermaid 版本</th><td><select name="bam_options[mermaid_version]">
-                    <option value="11.15.0" <?php selected($options['mermaid_version'], '11.15.0'); ?>>11.15.0 推荐</option>
+                    <option value="11.15.0" <?php selected($options['mermaid_version' => '0.2.3'); ?>>11.15.0 推荐</option>
                     <option value="11" <?php selected($options['mermaid_version'], '11'); ?>>11.x 最新主版本</option>
                     <option value="10.9.6" <?php selected($options['mermaid_version'], '10.9.6'); ?>>10.9.6 LTS</option>
                 </select><p class="description">推荐锁定 11.15.0，避免 @latest 不可控破坏。</p></td></tr>
