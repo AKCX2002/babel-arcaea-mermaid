@@ -26,40 +26,41 @@ permissions:
   pull-requests: write
 
 jobs:
-  # ── Job 1: Release on version change ──
-  check-version:
+  # ── Job 1: Auto-bump patch + release ──
+  bump-and-release:
+    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.get-version.outputs.version }}
-      exists: ${{ steps.check-tag.outputs.exists }}
+      version: ${{ steps.bump.outputs.new_version }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get plugin version
-        id: get-version
+      - name: Auto-bump patch version
+        id: bump
         run: |
-          VERSION=$(grep -oP "Version:\s*\K[0-9.]+" babel-arcaea-mermaid.php | head -1)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Found version: $VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Check if GitHub release exists
-        id: check-tag
-        run: |
-          VER="${{ steps.get-version.outputs.version }}"
-          if gh release view "v$VER" --repo ${{ github.repository }} >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Release v$VER already exists, skipping"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "Release v$VER will be created"
-          fi
+          # Read current version
+          CUR=$(grep -oP "Version:\s*\K[0-9.]+" babel-arcaea-mermaid.php | head -1)
+          echo "Current: $CUR"
 
-  release:
-    needs: check-version
-    if: needs.check-version.outputs.exists == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          # Bump patch
+          MAJOR=$(echo "$CUR" | cut -d. -f1)
+          MINOR=$(echo "$CUR" | cut -d. -f2)
+          PATCH=$(echo "$CUR" | cut -d. -f3)
+          NEW="$MAJOR.$MINOR.$((PATCH + 1))"
+          echo "New: $NEW"
+          echo "new_version=$NEW" >> "$GITHUB_OUTPUT"
+
+          # Update plugin header + constant
+          sed -i "s/^ \* Version: $CUR/ * Version: $NEW/" babel-arcaea-mermaid.php
+          sed -i "s/^define('BAM_VERSION', '$CUR');/define('BAM_VERSION', '$NEW');/" babel-arcaea-mermaid.php
+
+          # Commit with [skip ci] to prevent re-trigger
+          git add babel-arcaea-mermaid.php
+          git commit -m "chore: bump $CUR → $NEW [skip ci]"
+          git push
 
       - name: Build plugin zip
         run: |
@@ -75,10 +76,8 @@ jobs:
       - name: Create Release & Upload Asset
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ needs.check-version.outputs.version }}
+          VERSION: ${{ steps.bump.outputs.new_version }}
         run: |
-          # Delete existing release/tag if any (stale from partial runs)
-          gh release delete "v$VERSION" --repo ${{ github.repository }} --yes 2>/dev/null || true
           gh release create "v$VERSION" \
             --title "v$VERSION" \
             --notes "See [CHANGELOG](https://github.com/${{ github.repository }}/commits/v$VERSION)" \
@@ -124,7 +123,6 @@ jobs:
         run: |
           CUR="${{ steps.current.outputs.current }}"
           LAT="${{ steps.latest.outputs.latest }}"
-          # Update default version in bam_default_options()
           sed -i "s/mermaid_version.*'$CUR'/mermaid_version' => '$LAT'/" babel-arcaea-mermaid.php
           grep "mermaid_version" babel-arcaea-mermaid.php
 
@@ -132,9 +130,7 @@ jobs:
         if: steps.compare.outputs.same == 'false'
         run: |
           LAT="${{ steps.latest.outputs.latest }}"
-          # Extract major.minor
           MAJ_MIN=$(echo "$LAT" | grep -oP '^\d+\.\d+')
-          # Add to allowed_versions if not already there
           if ! grep -q "'$LAT'" babel-arcaea-mermaid.php; then
             sed -i "/allowed_versions/a\    '$LAT'," babel-arcaea-mermaid.php
             echo "Added $LAT to allowed_versions"
