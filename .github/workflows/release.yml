@@ -70,10 +70,11 @@ jobs:
           cp -r \
             babel-arcaea-mermaid.php \
             assets \
+            lib \
             /tmp/plugin/
           cd /tmp
-          mv plugin "babel-arcaea-mermaid-$VER"
-          zip -r "$ZIPNAME" "babel-arcaea-mermaid-$VER/" -x "*.git*" "*.DS_Store"
+          mv plugin "babel-arcaea-mermaid"
+          zip -r "$ZIPNAME" "babel-arcaea-mermaid/" -x "*.git*" "*.DS_Store"
           ls -lh "$ZIPNAME"
           echo "zipname=$ZIPNAME" >> "$GITHUB_OUTPUT"
 

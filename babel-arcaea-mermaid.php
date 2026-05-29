@@ -33,6 +33,15 @@ add_action('plugins_loaded', function () {
         'babel-arcaea-mermaid'
     );
     $updateChecker->getVcsApi()->enableReleaseAssets();
+    // Use GitHub token if available (GH_TOKEN env var set by server admin)
+    $token = getenv('GH_TOKEN') ?: getenv('GITHUB_TOKEN');
+    if (!empty($token)) {
+        try {
+            $updateChecker->getVcsApi()->setAuthentication($token);
+        } catch (\Exception $e) {
+            // Token not critical, skip
+        }
+    }
 });
 
 /**
