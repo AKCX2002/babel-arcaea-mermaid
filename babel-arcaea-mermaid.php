@@ -58,6 +58,8 @@ function bam_default_options()
         'enable_shortcode' => 1,
         'enable_codeblock' => 1,
         'enable_glow'      => 1,
+        'force_full_width' => 1,
+        'debug_mode'       => 0,
     );
 }
 
@@ -107,6 +109,8 @@ function bam_sanitize_options($input)
     $output['enable_shortcode'] = !empty($input['enable_shortcode']) ? 1 : 0;
     $output['enable_codeblock'] = !empty($input['enable_codeblock']) ? 1 : 0;
     $output['enable_glow'] = !empty($input['enable_glow']) ? 1 : 0;
+    $output['force_full_width'] = !empty($input['force_full_width']) ? 1 : 0;
+    $output['debug_mode'] = !empty($input['debug_mode']) ? 1 : 0;
 
     return $output;
 }
@@ -191,6 +195,14 @@ function bam_render_settings_page()
                     <th scope="row">发光效果</th>
                     <td><label><input type="checkbox" name="bam_options[enable_glow]" value="1" <?php checked($options['enable_glow'], 1); ?>> 启用 Arcaea 蓝白辉光</label></td>
                 </tr>
+                <tr>
+                    <th scope="row">图表全宽</th>
+                    <td><label><input type="checkbox" name="bam_options[force_full_width]" value="1" <?php checked($options['force_full_width'], 1); ?>> 强制 SVG 满宽</label></td>
+                </tr>
+                <tr>
+                    <th scope="row">调试模式</th>
+                    <td><label><input type="checkbox" name="bam_options[debug_mode]" value="1" <?php checked($options['debug_mode'], 1); ?>> 输出日志到浏览器控制台</label></td>
+                </tr>
             </table>
             <?php submit_button(); ?>
         </form>
@@ -255,6 +267,8 @@ function bam_enqueue_assets()
             'enableCodeblock' => !empty($options['enable_codeblock']),
             'enableShortcode' => !empty($options['enable_shortcode']),
             'enableGlow'      => !empty($options['enable_glow']),
+            'forceFullWidth'  => !empty($options['force_full_width']),
+            'debugMode'       => !empty($options['debug_mode']),
         )
     );
 }
