@@ -245,6 +245,16 @@ function bam_enqueue_assets()
         return;
     }
 
+    // Inject head marker BEFORE Prism autoloader scans
+    add_action('wp_head', function () {
+        ?><script>
+(function(){document.querySelectorAll('code.language-mermaid,code.lang-mermaid').forEach(function(c){
+var p=c.closest('pre');if(p){p.classList.add('no-toolbar','no-highlight','notranslate','arcaea-mermaid-source');
+c.classList.add('no-toolbar','no-highlight','language-none');c.removeAttribute('data-language');
+p.style.display='none';}})})();
+</script><?php
+    }, 0);
+
     wp_enqueue_style(
         'babel-arcaea-mermaid-style',
         BAM_PLUGIN_URL . 'assets/arcaea-mermaid.css',
