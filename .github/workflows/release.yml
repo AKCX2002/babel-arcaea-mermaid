@@ -6,7 +6,6 @@ on:
     paths-ignore:
       - '**.md'
       - '.gitignore'
-      - '.github/**'
   schedule:
     - cron: '0 6 * * *'       # daily 06:00 UTC
   workflow_dispatch:
@@ -63,25 +62,31 @@ jobs:
           git push
 
       - name: Build plugin zip
+        id: build
         run: |
-          mkdir -p /tmp/babel-arcaea-mermaid
+          VER="${{ steps.bump.outputs.new_version }}"
+          ZIPNAME="babel-arcaea-mermaid-$VER.zip"
+          mkdir -p /tmp/plugin
           cp -r \
             babel-arcaea-mermaid.php \
             assets \
-            /tmp/babel-arcaea-mermaid/
+            /tmp/plugin/
           cd /tmp
-          zip -r babel-arcaea-mermaid.zip babel-arcaea-mermaid/ -x "*.git*" "*.DS_Store"
-          ls -lh babel-arcaea-mermaid.zip
+          mv plugin "babel-arcaea-mermaid-$VER"
+          zip -r "$ZIPNAME" "babel-arcaea-mermaid-$VER/" -x "*.git*" "*.DS_Store"
+          ls -lh "$ZIPNAME"
+          echo "zipname=$ZIPNAME" >> "$GITHUB_OUTPUT"
 
       - name: Create Release & Upload Asset
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.bump.outputs.new_version }}
         run: |
+          ZIPNAME="${{ steps.build.outputs.zipname }}"
           gh release create "v$VERSION" \
             --title "v$VERSION" \
             --notes "See [CHANGELOG](https://github.com/${{ github.repository }}/commits/v$VERSION)" \
-            /tmp/babel-arcaea-mermaid.zip
+            "/tmp/$ZIPNAME"
 
   # ── Job 2: Daily Mermaid version sync ──
   sync-mermaid:
