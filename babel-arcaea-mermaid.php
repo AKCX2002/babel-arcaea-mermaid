@@ -248,8 +248,14 @@ function bam_enqueue_assets()
     // Inject head marker BEFORE Prism autoloader scans
     add_action('wp_head', function () {
         ?><script>
-// MutationObserver: intercept language-mermaid BEFORE Prism sees them
-(function(){function p(){document.querySelectorAll('code.language-mermaid,code.lang-mermaid,pre.mermaid').forEach(function(c){var p=c.closest('pre')||c;if(p&&!p.dataset.bamProtected){p.dataset.bamProtected='1';
+// Patch Prism.highlightElement to skip arcaea-mermaid-source elements
+(function(){
+var orig=window.Prism&&Prism.highlightElement;
+if(orig){Prism.highlightElement=function(o,e,c){
+if(o&&(o.classList.contains('arcaea-mermaid-source')||o.closest&&o.closest('.arcaea-mermaid-source')))return;
+return orig.call(Prism,o,e,c);};}
+function p(){document.querySelectorAll('code.language-mermaid,code.lang-mermaid,pre.mermaid').forEach(function(c){
+var p=c.closest('pre')||c;if(p&&!p.dataset.bamProtected){p.dataset.bamProtected='1';
 p.classList.add('no-toolbar','no-highlight','notranslate','arcaea-mermaid-source');var cd=p.tagName==='PRE'?p.querySelector('code')||c:c;
 cd.classList.add('no-toolbar','no-highlight','language-none');cd.removeAttribute('data-language');p.style.setProperty('display','none','important');}})}
 p();var o=new MutationObserver(function(m){m.forEach(function(r){r.addedNodes.forEach(function(n){if(n.querySelectorAll){p();}})})});
