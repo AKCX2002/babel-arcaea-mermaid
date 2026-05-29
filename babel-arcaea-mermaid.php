@@ -3,7 +3,7 @@
  * Plugin Name: Babel Arcaea Mermaid
  * Plugin URI: https://github.com/AKCX2002/babel-arcaea-mermaid
  * Description: Render Mermaid diagrams in WordPress Markdown/code blocks with Arcaea/Sakurairo styled glassmorphism theme.
- * Version: 1.1.4
+ * Version: 1.1.5
  * Author: Babel36acl
  * License: GPL-2.0-or-later
  * Text Domain: babel-arcaea-mermaid
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('BAM_VERSION', '1.1.4');
+define('BAM_VERSION', '1.1.5');
 define('BAM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BAM_PLUGIN_DIR', plugin_dir_path(__FILE__));
 
