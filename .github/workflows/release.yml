@@ -1,0 +1,115 @@
+name: Release & Sync
+
+on:
+  push:
+    branches: [master, main]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - '.github/**'
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type (patch/minor/major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      exists: ${{ steps.check-tag.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get plugin version
+        id: get-version
+        run: |
+          VERSION=$(grep -oP "Version:\s*\K[0-9.]+" babel-arcaea-mermaid.php | head -1)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Found version: $VERSION"
+
+      - name: Check if tag exists
+        id: check-tag
+        run: |
+          VER="${{ steps.get-version.outputs.version }}"
+          if git rev-parse "v$VER" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag v$VER already exists, skipping release"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Tag v$VER will be created"
+          fi
+
+  release:
+    needs: check-version
+    if: needs.check-version.outputs.exists == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build plugin zip
+        run: |
+          mkdir -p /tmp/babel-arcaea-mermaid
+          cp -r \
+            babel-arcaea-mermaid.php \
+            assets \
+            /tmp/babel-arcaea-mermaid/
+          cd /tmp
+          zip -r babel-arcaea-mermaid.zip babel-arcaea-mermaid/ -x "*.git*" "*.DS_Store"
+          ls -lh babel-arcaea-mermaid.zip
+
+      - name: Create Release & Upload Asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check-version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" \
+            --title "v$VERSION" \
+            --notes "See [CHANGELOG](https://github.com/${{ github.repository }}/commits/v$VERSION)" \
+            /tmp/babel-arcaea-mermaid.zip
+
+  sync-mermaid:
+    needs: check-version
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest Mermaid stable version
+        id: mermaid-version
+        run: |
+          LATEST=$(curl -sL "https://api.github.com/repos/mermaid-js/mermaid/releases/latest" | grep '"tag_name"' | head -1 | grep -oP '[0-9.]+')
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "Latest Mermaid: $LATEST"
+
+      - name: Update plugin defaults
+        run: |
+          LATEST="${{ steps.mermaid-version.outputs.latest }}"
+          echo "Would update mermaid_version default to $LATEST"
+          echo "Manual review recommended before committing"
+
+      - name: Create PR for version update
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ github.token }}
+          commit-message: "chore: bump Mermaid default to ${{ steps.mermaid-version.outputs.latest }}"
+          title: "chore: bump Mermaid default to ${{ steps.mermaid-version.outputs.latest }}"
+          body: |
+            Automated bump of default Mermaid.js version.
+
+            - Source: https://github.com/mermaid-js/mermaid/releases
+            - Version: `${{ steps.mermaid-version.outputs.latest }}`
+
+            Review the release notes before merging for any breaking changes.
+          branch: chore/mermaid-bump-${{ steps.mermaid-version.outputs.latest }}
+          base: master
