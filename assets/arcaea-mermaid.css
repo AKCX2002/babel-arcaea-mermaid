@@ -1,0 +1,178 @@
+/* =========================================================
+ * Babel Arcaea Mermaid
+ * Arcaea / Sakurairo styled Mermaid diagram renderer
+ * ======================================================= */
+
+/* ---- Container with Arcaea glow border ---- */
+.bam-mermaid-wrap {
+    position: relative;
+    margin: 1.8rem 0;
+    padding: 1px;
+    border-radius: 18px;
+    overflow: hidden;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(145, 203, 255, 0.48),
+            rgba(255, 255, 255, 0.10) 32%,
+            rgba(113, 168, 255, 0.30) 68%,
+            rgba(255, 255, 255, 0.08)
+        );
+    box-shadow:
+        0 16px 42px rgba(0, 0, 0, 0.22),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Ambient light overlay ---- */
+.bam-mermaid-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12% 0%, rgba(142, 201, 255, 0.22), transparent 36%),
+        radial-gradient(circle at 88% 100%, rgba(195, 225, 255, 0.14), transparent 34%);
+    opacity: 0.9;
+    z-index: 0;
+}
+
+/* ---- Inner glass card ---- */
+.bam-mermaid-diagram {
+    position: relative;
+    z-index: 1;
+    padding: 22px;
+    border-radius: 17px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(20, 25, 38, 0.78),
+            rgba(12, 16, 26, 0.70)
+        );
+    backdrop-filter: blur(16px) saturate(1.25);
+    -webkit-backdrop-filter: blur(16px) saturate(1.25);
+    color: #eaf4ff;
+    font-family:
+        "FiraCode Nerd Font", "Fira Code", "JetBrains Mono",
+        "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+}
+
+.bam-mermaid-diagram svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    font-family:
+        "FiraCode Nerd Font", "Fira Code", "JetBrains Mono",
+        "Noto Sans SC", "Microsoft YaHei", sans-serif !important;
+}
+
+/* ---- Arcaea soft glow (toggleable) ---- */
+.bam-mermaid-glow-enabled .bam-mermaid-wrap {
+    box-shadow:
+        0 18px 46px rgba(0, 0, 0, 0.30),
+        0 0 26px rgba(109, 173, 255, 0.18),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+
+.bam-mermaid-glow-enabled .bam-mermaid-wrap:hover {
+    box-shadow:
+        0 22px 58px rgba(0, 0, 0, 0.34),
+        0 0 34px rgba(126, 194, 255, 0.28),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+}
+
+/* ---- Subtle node glow ---- */
+.bam-mermaid-diagram .node rect,
+.bam-mermaid-diagram .node circle,
+.bam-mermaid-diagram .node ellipse,
+.bam-mermaid-diagram .node polygon,
+.bam-mermaid-diagram .node path {
+    filter: drop-shadow(0 0 6px rgba(130, 190, 255, 0.18));
+}
+
+.bam-mermaid-diagram .edgePath path {
+    filter: drop-shadow(0 0 4px rgba(130, 190, 255, 0.28));
+}
+
+.bam-mermaid-diagram .edgeLabel {
+    border-radius: 8px;
+}
+
+/* ---- Error fallback ---- */
+.bam-mermaid-error {
+    border: 1px solid rgba(255, 120, 120, 0.35);
+}
+
+.bam-mermaid-error::after {
+    content: "Mermaid render failed. Please check diagram syntax.";
+    display: block;
+    position: relative;
+    z-index: 2;
+    padding: 8px 12px;
+    color: #ffd0d0;
+    font-size: 13px;
+}
+
+/* ---- Light mode ---- */
+html[data-bam-mermaid-theme="arcaea_light"] .bam-mermaid-wrap {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(112, 178, 255, 0.34),
+            rgba(255, 255, 255, 0.72) 34%,
+            rgba(167, 213, 255, 0.44) 70%,
+            rgba(255, 255, 255, 0.82)
+        );
+    box-shadow:
+        0 16px 36px rgba(60, 110, 170, 0.15),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.70);
+}
+
+html[data-bam-mermaid-theme="arcaea_light"] .bam-mermaid-diagram {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(250, 253, 255, 0.88),
+            rgba(239, 247, 255, 0.82)
+        );
+    color: #263141;
+}
+
+/* ---- Sakurairo / common dark mode compatibility ---- */
+.dark .bam-mermaid-diagram,
+body.dark .bam-mermaid-diagram,
+body.theme-dark .bam-mermaid-diagram,
+body[data-theme="dark"] .bam-mermaid-diagram {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(20, 25, 38, 0.78),
+            rgba(12, 16, 26, 0.70)
+        );
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 768px) {
+    .bam-mermaid-wrap {
+        margin: 1.4rem 0;
+        border-radius: 15px;
+    }
+    .bam-mermaid-diagram {
+        padding: 16px;
+        border-radius: 14px;
+    }
+    .bam-mermaid-diagram svg {
+        min-width: 520px;
+    }
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+    .bam-mermaid-wrap,
+    .bam-mermaid-wrap:hover {
+        transition: none;
+    }
+}
