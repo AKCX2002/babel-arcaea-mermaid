@@ -110,9 +110,19 @@
             'pre.mermaid code'
         ];
         let count = 0;
+        // Mark parent pre elements to prevent Prism.js from processing them
         document.querySelectorAll(selectors.join(',')).forEach((code) => {
             const pre = code.closest('pre');
-            if (!pre || pre.dataset.bamConverted === '1') { return; }
+            if (!pre) { return; }
+            pre.dataset.bamConverted = '1';
+            // Prevent Prism.js toolbar from attaching to this pre
+            pre.classList.add('no-highlight');
+            pre.setAttribute('data-prism-no-highlight', 'true');
+        });
+        // Now replace them with mermaid divs
+        document.querySelectorAll(selectors.join(',')).forEach((code) => {
+            const pre = code.closest('pre');
+            if (!pre || pre.dataset.bamReplaced === '1') { return; }
             const raw = code.textContent || code.innerText || '';
             const decoded = decodeHtmlEntities(raw).trim();
             if (!decoded) { return; }
@@ -122,7 +132,7 @@
             div.className = 'mermaid bam-mermaid-diagram';
             div.textContent = decoded;
             outer.appendChild(div);
-            pre.dataset.bamConverted = '1';
+            pre.dataset.bamReplaced = '1';
             pre.replaceWith(outer);
             count++;
         });
