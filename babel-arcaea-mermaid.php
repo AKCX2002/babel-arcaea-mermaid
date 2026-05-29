@@ -259,27 +259,6 @@ function bam_enqueue_assets()
         BAM_VERSION,
         true
     );
-
-    $version = $options['mermaid_version'];
-    $mermaid_url = sprintf(
-        'https://cdn.jsdelivr.net/npm/mermaid@%s/dist/mermaid.esm.min.mjs',
-        rawurlencode($version)
-    );
-
-    wp_localize_script(
-        'babel-arcaea-mermaid-script',
-        'BabelArcaeaMermaid',
-        array(
-            'mermaidUrl'      => esc_url_raw($mermaid_url),
-            'themeMode'       => sanitize_text_field($options['theme_mode']),
-            'securityLevel'   => sanitize_text_field($options['security_level']),
-            'enableCodeblock' => !empty($options['enable_codeblock']),
-            'enableShortcode' => !empty($options['enable_shortcode']),
-            'enableGlow'      => !empty($options['enable_glow']),
-            'forceFullWidth'  => !empty($options['force_full_width']),
-            'debugMode'       => !empty($options['debug_mode']),
-        )
-    );
 }
 add_action('wp_enqueue_scripts', 'bam_enqueue_assets');
 
@@ -297,27 +276,10 @@ function bam_mermaid_shortcode($atts, $content = null)
     if ($content === '') {
         return '';
     }
-    return '<div class="bam-mermaid-wrap">'
-        . '<div class="mermaid bam-mermaid-diagram">'
+    return '<div class="arcaea-mermaid-box">'
+        . '<div class="mermaid arcaea-mermaid-diagram">'
         . esc_html($content)
         . '</div>'
         . '</div>';
 }
 add_shortcode('mermaid', 'bam_mermaid_shortcode');
-
-/**
- * Add body class for glow control.
- */
-function bam_body_classes($classes)
-{
-    $options = bam_get_options();
-    if (!empty($options['enabled'])) {
-        $classes[] = 'bam-mermaid-enabled';
-    }
-    if (!empty($options['enable_glow'])) {
-        $classes[] = 'bam-mermaid-glow-enabled';
-    }
-    $classes[] = 'bam-mermaid-theme-' . sanitize_html_class($options['theme_mode']);
-    return $classes;
-}
-add_filter('body_class', 'bam_body_classes');
