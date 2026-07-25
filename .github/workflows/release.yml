@@ -124,27 +124,59 @@ jobs:
             echo "Update: $CUR -> $LAT"
           fi
 
-      - name: Bump default version in PHP
+      - name: Update pinned and allowed Mermaid versions
         if: steps.compare.outputs.same == 'false'
+        env:
+          CUR: ${{ steps.current.outputs.current }}
+          LAT: ${{ steps.latest.outputs.latest }}
         run: |
-          CUR="${{ steps.current.outputs.current }}"
-          LAT="${{ steps.latest.outputs.latest }}"
-          sed -i "s/mermaid_version.*'$CUR'/mermaid_version' => '$LAT'/" babel-arcaea-mermaid.php
-          grep "mermaid_version" babel-arcaea-mermaid.php
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import re
 
-      - name: Bump allowed versions list
-        if: steps.compare.outputs.same == 'false'
-        run: |
-          LAT="${{ steps.latest.outputs.latest }}"
-          MAJ_MIN=$(echo "$LAT" | grep -oP '^\d+\.\d+')
-          if ! grep -q "'$LAT'" babel-arcaea-mermaid.php; then
-            sed -i "/allowed_versions/a\    '$LAT'," babel-arcaea-mermaid.php
-            echo "Added $LAT to allowed_versions"
-          fi
-          if ! grep -q "'$MAJ_MIN'" babel-arcaea-mermaid.php; then
-            sed -i "/allowed_versions/a\    '$MAJ_MIN'," babel-arcaea-mermaid.php
-            echo "Added $MAJ_MIN to allowed_versions"
-          fi
+          path = Path('babel-arcaea-mermaid.php')
+          current = os.environ['CUR']
+          latest = os.environ['LAT']
+
+          if not re.fullmatch(r'\d+(?:\.\d+)+', latest):
+              raise SystemExit(f'Unexpected Mermaid version: {latest!r}')
+
+          text = path.read_text(encoding='utf-8')
+          default_pattern = re.compile(
+              rf"(?m)^(\s*'mermaid_version'\s*=>\s*)'{re.escape(current)}',\s*$"
+          )
+          text, replacements = default_pattern.subn(
+              lambda match: f"{match.group(1)}'{latest}',", text, count=1
+          )
+          if replacements != 1:
+              raise SystemExit(
+                  f'Expected one default version {current!r}; found {replacements}'
+              )
+
+          allowed_pattern = re.compile(
+              r'(?P<prefix>\$allowed_versions\s*=\s*array\()'
+              r'(?P<body>[^)]*)'
+              r'(?P<suffix>\);)'
+          )
+          allowed = allowed_pattern.search(text)
+          if not allowed:
+              raise SystemExit('Could not find $allowed_versions array')
+
+          versions = re.findall(r"'([^']+)'", allowed.group('body'))
+          for version in (latest, '.'.join(latest.split('.')[:2])):
+              if version not in versions:
+                  versions.append(version)
+
+          replacement = (
+              allowed.group('prefix')
+              + ', '.join(f"'{version}'" for version in versions)
+              + allowed.group('suffix')
+          )
+          text = text[:allowed.start()] + replacement + text[allowed.end():]
+          path.write_text(text, encoding='utf-8')
+          PY
+          grep -n "mermaid_version\|allowed_versions" babel-arcaea-mermaid.php
 
       - name: Create Pull Request
         if: steps.compare.outputs.same == 'false'
