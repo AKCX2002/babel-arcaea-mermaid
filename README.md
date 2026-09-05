@@ -1,3 +1,5 @@
+> **已迁移（2026-09-06）**：本组件及完整 Git 历史已合并到 [sakurairo-arcaea-styling/babel-arcaea-mermaid](https://github.com/AKCX2002/sakurairo-arcaea-styling/tree/main/babel-arcaea-mermaid)。后续开发、安装说明和问题跟踪请使用主仓库；此仓库保留历史。
+
 # Babel Arcaea Mermaid
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)

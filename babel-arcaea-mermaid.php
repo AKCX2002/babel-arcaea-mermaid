@@ -27,7 +27,7 @@ add_action('plugins_loaded', function () {
     }
     require_once $puc_file;
     $updateChecker = \YahnisElsts\PluginUpdateChecker\v5p7\PucFactory::buildUpdateChecker(
-        'https://github.com/AKCX2002/babel-arcaea-mermaid/',
+        'https://github.com/AKCX2002/sakurairo-arcaea-styling/',
         __FILE__,
         'babel-arcaea-mermaid'
     );
